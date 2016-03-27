@@ -488,10 +488,141 @@ OutputIterator replace_copy(InputIterator first, InputIterator last,
 }
 
 ///...........................reverse reverse_copy...........................///
-///待实现
+template<typename BidirectionalIterator>
+void __reverse(BidirectionalIterator first,
+               BidirectionalIterator last,
+               bidirectional_iterator_tag)
+{
+    while(true)
+    {
+        if(first==last||first==--last)                    //当没有元素或只有一个元素时，直接返回
+            return ;
+        iter_swap(first++,last);
+    }
+}
+template<typename RandomAccessIterator>
+void __reverse(RandomAccessIterator first,
+               RandomAccessIterator last,
+               random_access_iterator_tag)
+{
+    while(first<last)iter_swap(first++,--last);
+}
 
+template<typename BidirectionalIterator>
+void reverse(BidirectionalIterator first,
+              BidirectionalIterator last)
+{
+    __reverse(first,last,iterator_category(first));
+}
 
+template<typename BidirectionalIterator,typename OutputIterator>
+OutputIterator reverse_copy(BidirectionalIterator first,
+                            BidirectionalIterator last,
+                            OutputIterator result)
+{
+    while(first!=last)
+    {
+        --last;
+        *result=*last;
+        ++result;
+    }
+    return result;
+}
 
+///.................................rotate rotate_copy............................///
+template<typename ForwardIterator,typename OutputIterator>
+OutputIterator rotate_copy(ForwardIterator first,
+                            ForwardIterator middle,
+                            ForwardIterator last,
+                            OutputIterator result)
+{
+    copy(middle,last,result);
+    copy(first,middle,result);
+}
+
+///.................................search search_n................................///
+template<typename ForwardIterator1,typename ForwardIterator2>
+ForwardIterator1 search(ForwardIterator1 first1, ForwardIterator1 last1,
+                        ForwardIterator2 first2, ForwardIterator2 last2)
+{
+// 自定义版本，效率不高
+//    while(first1!=last1)
+//    {
+//        if(*first1==*first2)
+//        {
+//            ForwardIterator1 cur1=first1;
+//            ForwardIterator2 cur2=first2;
+//            for(++cur1,++cur2;cur1!=last1&&cur2!=last2;++cur1,++cur2)
+//                if(*cur1!=*cur2)
+//                {
+//                    first1=++cur1;
+//                    break;
+//                }
+//            return cur2==last2 ? first1:last1;
+//        }
+//        else
+//            ++first1;
+//    }
+//    return last1;
+
+    typedef typename iterator_traits<ForwardIterator1>::difference_type Distance1;
+    typedef typename iterator_traits<ForwardIterator2>::difference_type Distance2;
+
+    Distance1 d1=distance(first1,last1);
+    Distance2 d2=distance(first2,last2);
+    if(d1<d2) return last1;
+
+    ForwardIterator1 current1 =first1;
+    ForwardIterator2 current2 = first2;
+    while(current2!=last2)
+    {
+        if(*current1==*current2)
+        {
+            ++current1;
+            ++current2;
+        }
+        else
+        {
+            if(d1==d2) return last1;
+            current1=++first1;
+            current2=first2;
+            --d1;
+        }
+    }
+    return first1;
+}
+
+template<typename ForwardIterator1,typename ForwardIterator2,typename BinaryPredicate>
+ForwardIterator1 search(ForwardIterator1 first1, ForwardIterator1 last1,
+                        ForwardIterator2 first2, ForwardIterator2 last2,
+                        BinaryPredicate bp)
+{
+    typedef typename iterator_traits<ForwardIterator1>::difference_type Distance1;
+    typedef typename iterator_traits<ForwardIterator2>::difference_type Distance2;
+
+    Distance1 d1=distance(first1,last1);
+    Distance2 d2=distance(first2,last2);
+    if(d1<d2) return last1;
+
+    ForwardIterator1 current1 =first1;
+    ForwardIterator2 current2 = first2;
+    while(current2!=last2)
+    {
+        if(bp(*current1,*current2))
+        {
+            ++current1;
+            ++current2;
+        }
+        else
+        {
+            if(d1==d2) return last1;
+            current1=++first1;
+            current2=first2;
+            --d1;
+        }
+    }
+    return first1;
+}
 
 
 ///...................................lower_bound.................................///
